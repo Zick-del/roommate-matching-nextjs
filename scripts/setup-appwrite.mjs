@@ -188,6 +188,15 @@ async function main() {
 
   // 3. Survey progress
   await createBoolAttr(COLLECTION_ID, "surveyDone", false, false);
+  // Update completedStep max to 8 (survey now has 8 steps)
+  try {
+    await request("PATCH", `/databases/${DATABASE_ID}/collections/${COLLECTION_ID}/attributes/integer/completedStep`, {
+      required: false, min: 0, max: 8, default: 0,
+    });
+    console.log(`  ✓ updated completedStep max → 8`);
+  } catch (e) {
+    if (!e.message.includes("409")) console.warn(`  ⚠ completedStep update: ${e.message}`);
+  }
   await createIntAttr(COLLECTION_ID, "completedStep", false, 0, 8, 0);
 
   // 4. Housing prefs
@@ -234,6 +243,7 @@ async function main() {
   await createFloatAttr(COLLECTION_ID, "wohnort_lat", false, -90, 90);
   await createFloatAttr(COLLECTION_ID, "wohnort_lon", false, -180, 180);
   await createIntAttr(COLLECTION_ID, "radius_km", false, 0, 200);
+  await createIntAttr(COLLECTION_ID, "wohnort_radius", false, 0, 200);
 
   // 13. ClaVis CORE scores (populated by import script, not by survey)
   await createIntAttr(COLLECTION_ID, "clavis_s", false, 0, 100);

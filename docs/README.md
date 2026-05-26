@@ -66,46 +66,9 @@ flowchart LR
         API -->|"gereifte Matches"| NJ
     end
 ```
-
 ---
 
-## 3. Zielzustand — Flexible Datenquelle im Algorithmus
-
-Die API unterstützt sowohl Excel als auch Appwrite als Datenquelle, umschaltbar per Konfigurationsdatei.
-
-```mermaid
-flowchart TB
-    subgraph DS ["Datenquellen-Schicht (FastAPI)"]
-        direction LR
-        IF["Datenquellen-\nSchnittstelle"]
-        XLS["ExcelDatenquelle\n← aktuell"]
-        ADS["AppwriteDatenquelle\n← in Arbeit"]
-        IF --> XLS
-        IF --> ADS
-    end
-
-    subgraph AW ["Appwrite"]
-        DB[("Teilnehmer-\nCollection")]
-    end
-
-    EXCEL["teilnehmer.xlsx"]
-
-    XLS -->|"openpyxl"| EXCEL
-    ADS -->|"REST-Schnittstelle"| DB
-
-    DS -->|"Liste der Teilnehmer"| ALG["Matching-\nAlgorithmus"]
-    ALG -->|"Ergebnisse"| RESP["GET /matches/{id}"]
-
-    style XLS fill:#f0f9ff,stroke:#0ea5e9
-    style ADS fill:#f0fdf4,stroke:#22c55e
-```
-
-> **Konfigurationsschalter** (`config.yaml`): `data_source: excel | appwrite`
-> Ziel: Wechsel ohne Code-Änderungen möglich, Excel bleibt zuverlässiger Fallback.
-
----
-
-## 4. Nutzererlebnis — Ablauf im Frontend
+## 4. User Experience — Ablauf im Frontend
 
 ```mermaid
 flowchart TD

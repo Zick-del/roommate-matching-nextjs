@@ -37,12 +37,14 @@ function FieldError({ msg }: { msg?: string }) {
   return msg ? <p className="text-xs text-destructive">{msg}</p> : null;
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: { title?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        {title}
-      </h2>
+      {title && (
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          {title}
+        </h2>
+      )}
       {children}
     </div>
   );
@@ -62,7 +64,7 @@ function SelectField({
       <Label>{label}</Label>
       <Select onValueChange={onChange} value={value ?? ""}>
         <SelectTrigger><SelectValue placeholder="Bitte wählen…" /></SelectTrigger>
-        <SelectContent>
+        <SelectContent className="w-auto">
           {options.map((o) => (
             <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
           ))}
@@ -177,7 +179,7 @@ function LikertStepForm<T extends Record<string, number>>({
   userId: string;
   onDone: () => void;
   stepNum: number;
-  sections: { title: string; items: { key: string; label: string }[] }[];
+  sections: { title?: string; items: { key: string; label: string }[] }[];
 }) {
   const router = useRouter();
   const allItems = sections.flatMap((s) => s.items);
@@ -209,7 +211,7 @@ function LikertStepForm<T extends Record<string, number>>({
       isSubmitting={form.formState.isSubmitting}
     >
       {sections.map((section, idx) => (
-        <div key={section.title}>
+        <div key={idx}>
           {idx > 0 && <Separator className="my-4" />}
           <Section title={section.title}>
             {section.items.map(({ key, label }) => (
@@ -621,7 +623,7 @@ function Step4Form({ existing, userId, onDone, stepNum }: FormProps) {
 
   return (
     <SurveyStep
-      title="Einsamkeit & Stress"
+      title="Persönliche Einschätzungen"
       description="Bitte bewerten Sie, inwieweit die folgenden Aussagen auf Sie zutreffen."
       step={stepNum}
       totalSteps={TOTAL_STEPS}
@@ -629,7 +631,7 @@ function Step4Form({ existing, userId, onDone, stepNum }: FormProps) {
       onNext={form.handleSubmit(onSubmit)}
       isSubmitting={form.formState.isSubmitting}
     >
-      <Section title="Einsamkeit">
+      <Section>
         {E_ITEMS.map((label, i) => (
           <Controller
             key={`e${i + 1}`}
@@ -650,10 +652,7 @@ function Step4Form({ existing, userId, onDone, stepNum }: FormProps) {
 
       <Separator className="my-4" />
 
-      <Section title="Forschungsfragen">
-        <p className="text-xs text-muted-foreground -mt-2 mb-2">
-          Diese Fragen dienen der wissenschaftlichen Auswertung.
-        </p>
+      <Section>
         <Controller
           control={form.control}
           name="ze1"
@@ -682,7 +681,7 @@ function Step4Form({ existing, userId, onDone, stepNum }: FormProps) {
 
       <Separator className="my-4" />
 
-      <Section title="Stress">
+      <Section>
         {S_ITEMS.map((label, i) => (
           <Controller
             key={`s${i + 1}`}
@@ -711,19 +710,16 @@ function Step5Form(props: FormProps) {
     <LikertStepForm<Step5Data>
       {...props}
       schema={step5Schema}
-      title="Resilienz & Politische Orientierung"
+      title="Einstellungen & Werte"
       description="Bitte bewerten Sie, inwieweit die folgenden Aussagen auf Sie zutreffen."
       sections={[
         {
-          title: "Resilienz",
           items: R_ITEMS.map((label, i) => ({ key: `r${i + 1}`, label })),
         },
         {
-          title: "Autoritarismus",
           items: PA_ITEMS.map((label, i) => ({ key: `pa${i + 1}`, label })),
         },
         {
-          title: "Soziale Dominanz",
           items: PD_ITEMS.map((label, i) => ({ key: `pd${i + 1}`, label })),
         },
       ]}
@@ -738,19 +734,16 @@ function Step6Form(props: FormProps) {
     <LikertStepForm<Step6Data>
       {...props}
       schema={step6Schema}
-      title="Persönlichkeit & Closed Mindset"
+      title="Selbsteinschätzung"
       description="Bitte bewerten Sie, inwieweit die folgenden Aussagen auf Sie zutreffen."
       sections={[
         {
-          title: "Aggressivität",
           items: GA_ITEMS.map((label, i) => ({ key: `ga${i + 1}`, label })),
         },
         {
-          title: "Neurotizismus",
           items: GN_ITEMS.map((label, i) => ({ key: `gn${i + 1}`, label })),
         },
         {
-          title: "Einstellung zu Veränderung",
           items: CM_ITEMS.map((label, i) => ({ key: `cm${i + 1}`, label })),
         },
       ]}

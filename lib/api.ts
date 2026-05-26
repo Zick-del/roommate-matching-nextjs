@@ -75,10 +75,12 @@ function transformMatch(
 ): MatchErgebnis {
   const profile = profileMap.get(raw.partner_id);
 
-  const komponenten = Object.entries(COMPONENT_LABELS).map(([key, label]) => ({
-    label,
-    value: Math.round((raw.components[key] ?? 0) * 100),
-  }));
+  const komponenten = Object.entries(COMPONENT_LABELS)
+    .filter(([key]) => raw.components[key] != null)
+    .map(([key, label]) => ({
+      label,
+      value: Math.round(raw.components[key]! * 100),
+    }));
 
   const zusammenfassung =
     raw.explanation.strengths[0] ??
