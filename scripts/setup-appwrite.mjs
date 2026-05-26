@@ -188,7 +188,7 @@ async function main() {
 
   // 3. Survey progress
   await createBoolAttr(COLLECTION_ID, "surveyDone", false, false);
-  await createIntAttr(COLLECTION_ID, "completedStep", false, 0, 7, 0);
+  await createIntAttr(COLLECTION_ID, "completedStep", false, 0, 8, 0);
 
   // 4. Housing prefs
   await createIntAttr(COLLECTION_ID, "budget_min", false, 0, 10000);
@@ -243,7 +243,58 @@ async function main() {
   await createIntAttr(COLLECTION_ID, "clavis_sicherheit", false, 0, 100);
   await createIntAttr(COLLECTION_ID, "clavis_stimulation", false, 0, 100);
 
-  // 14. Indexes
+  // 14. New survey fields (Umfrage.docx — single source of truth)
+
+  // Step 2: Demographische Angaben
+  await createBoolAttr(COLLECTION_ID, "kinder", false, false);
+  await createIntAttr(COLLECTION_ID, "kinder_anzahl", false, 1, 10);
+  await createStringAttr(COLLECTION_ID, "bildungsstand", 50);
+  await createBoolAttr(COLLECTION_ID, "sprache_deutsch", false, true);
+  await createStringAttr(COLLECTION_ID, "sprache_niveau", 5);
+  await createStringAttr(COLLECTION_ID, "haustiere_art", 100);
+
+  // Step 3: Standort & Wohnpräferenzen
+  await createStringAttr(COLLECTION_ID, "wohnort_stadt", 100);
+  await createStringAttr(COLLECTION_ID, "einzug_datum", 20);
+
+  // Step 4: Einsamkeit (E1–E6) + Forschungsfragen (ZE1–ZE2) + Stress (S1–S5)
+  for (let i = 1; i <= 6; i++) await createIntAttr(COLLECTION_ID, `e${i}`, false, 1, 5);
+  await createStringAttr(COLLECTION_ID, "ze1", 5);
+  await createStringAttr(COLLECTION_ID, "ze2", 5);
+  for (let i = 1; i <= 5; i++) await createIntAttr(COLLECTION_ID, `s${i}`, false, 1, 5);
+
+  // Step 5: Resilienz (R1–R5) + Autoritarismus (PA1–PA4) + Soziale Dominanz (PD1–PD3)
+  for (let i = 1; i <= 5; i++) await createIntAttr(COLLECTION_ID, `r${i}`, false, 1, 5);
+  for (let i = 1; i <= 4; i++) await createIntAttr(COLLECTION_ID, `pa${i}`, false, 1, 5);
+  for (let i = 1; i <= 3; i++) await createIntAttr(COLLECTION_ID, `pd${i}`, false, 1, 5);
+
+  // Step 6: Aggression (GA1–GA3) + Neurotizismus (GN1–GN3) + Closed Mindset (CM1–CM3)
+  for (let i = 1; i <= 3; i++) await createIntAttr(COLLECTION_ID, `ga${i}`, false, 1, 5);
+  for (let i = 1; i <= 3; i++) await createIntAttr(COLLECTION_ID, `gn${i}`, false, 1, 5);
+  for (let i = 1; i <= 3; i++) await createIntAttr(COLLECTION_ID, `cm${i}`, false, 1, 5);
+
+  // Step 7: Lebensstil — Eigenes Verhalten
+  await createStringAttr(COLLECTION_ID, "gem_haeufigkeit", 30);
+  await createIntAttr(COLLECTION_ID, "wg_unterstuetzung", false, 1, 5);
+  await createIntAttr(COLLECTION_ID, "sauberkeit_wichtig", false, 1, 5);
+  await createIntAttr(COLLECTION_ID, "ich_ordentlich", false, 1, 5);
+  await createStringAttr(COLLECTION_ID, "eigene_lautstaerke", 30);
+  await createStringAttr(COLLECTION_ID, "eigener_besuch", 30);
+  await createStringAttr(COLLECTION_ID, "rauchen", 20);
+
+  // Step 8: Erwartungen & Ausschlusskriterien
+  await createStringAttr(COLLECTION_ID, "geschirr_wann", 30);
+  await createStringAttr(COLLECTION_ID, "fremder_besuch", 30);
+  await createStringAttr(COLLECTION_ID, "fremde_lautstaerke", 30);
+  await createStringAttr(COLLECTION_ID, "laerm_empfindlichkeit", 40);
+  await createStringAttr(COLLECTION_ID, "rauchen_toleranz", 20);
+  await createStringAttr(COLLECTION_ID, "teilen_haltung", 30);
+  await createStringAttr(COLLECTION_ID, "ausschluss_alter", 100);
+  await createStringAttr(COLLECTION_ID, "ausschluss_geschlecht", 50);
+  await createBoolAttr(COLLECTION_ID, "ausschluss_kinder", false, false);
+  await createStringAttr(COLLECTION_ID, "mindest_bildung", 50);
+
+  // 15. Indexes
   await createIndex(COLLECTION_ID, "userId_idx", ["userId"]);
   await createIndex(COLLECTION_ID, "clavisId_idx", ["clavisId"]);
 
