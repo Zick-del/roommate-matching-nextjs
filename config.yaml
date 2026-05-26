@@ -1,0 +1,184 @@
+# Algorithmus-Konfiguration v0.3.0 (Phase 1: Excel-basiert)
+# Nach jeder Änderung version hochzählen.
+
+version: "0.4.0"
+
+# ============================================================
+# EXCEL SPALTEN-MAPPING
+# ============================================================
+# Zwei Arten von Feldern:
+#
+# 1. DIREKTE SPALTEN — kommen direkt vom 20FLOW7-System (immer vorhanden)
+#    Der Wert hier ist der echte Excel-Spaltenname.
+#
+# 2. KENNUNG-FELDER — kommen aus unserem Fragenkatalog (Frage N: Antwort)
+#    Der Wert hier ist die Kennung, die wir im Template vergeben.
+#    Lookup: suche "Frage N: Kennung == <wert>", lese "Frage N: Antwort".
+
+excel_columns:
+  # --- Direkte 20FLOW7-Spalten ---
+  participant_id: "ID"              # direkte Spalte
+  gender: "Geschlecht"              # direkte Spalte ('f'/'m'/'d')
+  age: "Alter"                      # direkte Spalte (int)
+
+  # --- Kennung-Felder (unser Fragenkatalog) ---
+  display_name: "anzeigename"
+  role: "rolle"                     # "suchend" | "anbietend"
+
+  # Hard Constraints
+  budget_min: "budget_min"
+  budget_max: "budget_max"
+  location_lat: "wohnort_lat"
+  location_lon: "wohnort_lon"
+  radius_km: "radius_km"
+  move_in_earliest: "einzug_fruehestens"
+  move_in_latest: "einzug_spaetestens"
+  smoking: "raucher"
+  smoking_tolerance: "raucher_toleranz"
+  pets_owned: "haustiere"
+  pets_tolerance: "haustiere_toleranz"
+  female_only_request: "nur_frauen_wg"
+
+  # Lifestyle (1-5 Likert)
+  cleanliness: "sauberkeit"
+  community: "gemeinschaft"
+  guests: "besucher"
+  noise: "laerm_toleranz"
+  structure: "struktur"
+  sharing: "teilen"
+  self_cleanliness: "selbst_sauberkeit"
+  daily_rhythm: "tagesrhythmus"      # "schicht" | "buero" | "homeoffice"
+
+# ============================================================
+# PSYCHOMETRISCHE SKALEN
+# ============================================================
+# Pro Skala: welche Items, was ist reverse-coded, welche Likert-Spannweite
+
+scales:
+  ucla:
+    items: ["ucla_1", "ucla_2", "ucla_3", "ucla_4", "ucla_5", "ucla_6"]
+    reverse_items: ["ucla_3", "ucla_5", "ucla_6"]
+    likert_max: 5
+    description: "UCLA Loneliness Scale (Outcome-Variable, NICHT im Matching!)"
+
+  pss10:
+    items: ["pss_1", "pss_2", "pss_3", "pss_4", "pss_5"]
+    reverse_items: ["pss_2", "pss_5"]
+    likert_max: 5
+    description: "Perceived Stress Scale (Auswahl 5 Items)"
+
+  rs13:
+    items: ["rs_1", "rs_2", "rs_3", "rs_4", "rs_5"]
+    reverse_items: []
+    likert_max: 5
+    description: "Resilienz-Skala RS-13 (Auswahl 5 Items)"
+
+  ksa3:
+    items: ["ksa_1", "ksa_2", "ksa_3", "ksa_4", "ksa_5"]
+    reverse_items: []
+    likert_max: 5
+    description: "Kurzskala Autoritarismus"
+
+  ksdo3:
+    items: ["ksdo_1", "ksdo_2", "ksdo_3"]
+    reverse_items: ["ksdo_3"]
+    likert_max: 5
+    description: "Kurzskala Soziale Dominanzorientierung"
+
+  aggression:
+    items: ["agg_1", "agg_2", "agg_3"]
+    reverse_items: []
+    likert_max: 5
+    description: "Aggression (3 Items aus dt. Aggressionsfragebogen)"
+
+  impulsivity:
+    items: ["imp_1", "imp_2"]
+    reverse_items: []
+    likert_max: 5
+    description: "Impulsivität (Auswahl aus I-8)"
+
+  neuroticism:
+    items: ["neu_1", "neu_2", "neu_3"]
+    reverse_items: ["neu_2"]
+    likert_max: 5
+    description: "Neurotizismus (Auswahl aus BFI-2)"
+
+# ============================================================
+# CLAVIS DIMENSIONEN
+# ============================================================
+# Erwartete Spalten in Excel — passt sich an 20FLOW7-Format an
+
+clavis_dimensions:
+  # Direkte Spalten aus dem 20FLOW7-Export (ClaVis/CORE).
+  # Rohwerte sind 0-100; werden durch clavis_normalization_max auf [0,1] normiert.
+  - "Stimulation"   # stark korreliert mit E/I (r=0.83)
+  - "Sicherheit"    # stark korreliert mit J/P (r=0.88)
+  - "S"             # PSI-Dimension Selbstwachstum/Sicherheit
+  - "A"             # PSI-Dimension Anschluss
+  - "O"             # PSI-Dimension Ordnung
+  - "P"             # PSI-Dimension Planmäßigkeit
+
+clavis_normalization_max: 100   # 20FLOW7 liefert Werte 0-100, wir brauchen 0-1
+
+# ============================================================
+# SOFT SCORE GEWICHTE (Summe = 1.0)
+# ============================================================
+
+soft_score_weights:
+  personality: 0.20
+  lifestyle: 0.45
+  values: 0.10
+  complementary: 0.10
+  expectation: 0.15
+
+lifestyle_weights:
+  cleanliness: 0.25
+  community: 0.15
+  guests: 0.15
+  noise: 0.15
+  structure: 0.10
+  sharing: 0.10
+  self_cleanliness: 0.10
+
+# ============================================================
+# RISK LAYER (Ampelsystem) — normalisierte Schwellenwerte [0,1]
+# ============================================================
+
+risk_thresholds:
+  aggression:
+    yellow: 0.60
+    red: 0.80
+  impulsivity:
+    yellow: 0.65
+    red: 0.85
+  neuroticism:
+    yellow: 0.70
+    red: 0.85
+  stress:
+    yellow: 0.68
+    red: 0.85
+  resilience_low:
+    yellow: 0.30
+    red: 0.15
+
+# ============================================================
+# SIMILARITY-PARAMETER
+# ============================================================
+
+gaussian_sigmas:
+  ksa3: 0.20
+  ksdo3: 0.20
+
+rhythm_compatibility:
+  schicht:
+    schicht: 0.7
+    buero: 0.9
+    homeoffice: 0.5
+  buero:
+    schicht: 0.9
+    buero: 1.0
+    homeoffice: 0.8
+  homeoffice:
+    schicht: 0.5
+    buero: 0.8
+    homeoffice: 0.7
