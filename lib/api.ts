@@ -47,10 +47,12 @@ type RawParticipant = {
 
 const COMPONENT_LABELS: Record<string, string> = {
   personality:   "Persönlichkeit",
-  lifestyle:     "Lifestyle",
+  motives:       "Motive",
   values:        "Werte",
-  complementary: "Komplementarität",
+  wellbeing:     "Wohlbefinden",
   expectation:   "Erwartungen",
+  lifestyle:     "Lebensstil",
+  complementary: "Tagesrhythmus",
 };
 
 const BAND_MAP: Record<string, MatchErgebnis["band"]> = {
