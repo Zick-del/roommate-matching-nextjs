@@ -1,3 +1,8 @@
+---
+title: Übersicht
+nav_order: 1
+---
+
 # Systemarchitektur — Wohnraum-Partnerschaften
 
 Sprint Review · 27. Mai 2026
