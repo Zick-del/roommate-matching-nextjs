@@ -30,7 +30,7 @@ Die `DataSource`-Abstraktion erlaubt einen späteren Wechsel von Excel auf Appwr
 | Schritt | Beschreibung |
 |---------|-------------|
 | Reverse-Coding | Items mit negativer Polung werden gespiegelt |
-| Scale-Mittelwert | Itemgruppen werden gemittelt (< 80 % beantwortet → `None`) |
+| Scale-Mittelwert | Itemgruppen werden gemittelt |
 | Normalisierung | Alle Werte auf [0, 1] skaliert |
 
 ---
@@ -41,11 +41,11 @@ Binärer Filter — ein Paar wird eliminiert, sobald **eine** Bedingung nicht er
 
 | Constraint | Logik |
 |------------|-------|
-| Budget | Überlappung [min, max] beider Personen |
+| Budget ? | Überlappung [min, max] beider Personen |
 | Standort | Haversine-Distanz ≤ Radius |
 | Rauchen | Nichtraucher + kein_raucher_toleriert → ausgeschlossen |
 | Haustiere | Unverträgliche Tierarten |
-| Einzugsdatum | Zeitfenster müssen sich überschneiden |
+| Einzugsdatum ? | Zeitfenster müssen sich überschneiden |
 | Geschlecht | Ausschlussliste (gender_exclude) bidirektional |
 | Alter | Altersbereichs-Ausschluss (age_exclude, Liste von Tupeln) |
 | Kinder | has_children vs. children_exclude |
@@ -57,18 +57,18 @@ Binärer Filter — ein Paar wird eliminiert, sobald **eine** Bedingung nicht er
 Sieben Komponenten, gewichtete Summe (Summe = 1,0).
 Fehlende Komponenten werden herausgewichtet (Renormalisierung).
 
-| Komponente | Gewicht | Strategie | Metrik |
+| Komponente | Gewicht? | Strategie | Metrik |
 |------------|---------|-----------|--------|
 | **personality** | 0,15 | Ähnlichkeit | Gewichteter Manhattan auf ClaVis CORE |
 | **motives** | 0,15 | Ähnlichkeit | Gaussian σ=0,20 auf Bindung / Leistung / Gestaltung |
 | **values** | 0,15 | Ähnlichkeit | Gaussian σ=0,20 auf Autoritarismus, SDO, Closed Mindset |
-| **wellbeing** | 0,10 | Ähnlichkeit + Boni | Gaussian auf Stress / Resilienz / Einsamkeit |
+| **wellbeing** | 0,10 | Ähnlichkeit | Gaussian auf Stress / Resilienz / Einsamkeit |
 | **expectation** | 0,20 | Asymmetrischer Fit | min(A→B-Fit, B→A-Fit) für Sauberkeit, Lärm, Besuch |
 | **lifestyle** | 0,10 | Ähnlichkeit | Lineare Likert-Ähnlichkeit: Gemeinschaft, Teilen, Unterstützung |
 | **complementary** | 0,15 | Komplementarität | Tagesrhythmus-Kompatibilitätsmatrix |
 
-**Spezialregeln (Wellbeing):**
-- Einsamkeit-Boost: beide ≥ 0,63 → Ähnlichkeitswert ×1,5 (cap 1,0)
+<!-- **Spezialregeln (Wellbeing):**
+- Einsamkeit-Boost: beide ≥ 0,63 → Ähnlichkeitswert ×1,5 (cap 1,0)-->
 - Resilienz-Bonus: beide ≥ 0,80 → Ähnlichkeitswert ×1,2 (cap 1,0)
 
 **ClaVis-Dimension-Gewichte (Personality):**
@@ -122,6 +122,52 @@ Sortierung:
 - Hinweise: Bottom-2-Komponenten mit Ähnlichkeit < 0,55
 - Neutrale, nicht-stigmatisierende deutsche Formulierungen
 - Pflicht-Disclaimer: *"Eine Empfehlung, keine Verpflichtung — treffen Sie sich persönlich, bevor Sie eine Entscheidung treffen."*
+
+---
+
+## Feature-Übersicht
+
+### Soft Score — 7 Komponenten
+
+| Gruppe | Instrument / Skala | Einzelne Features | Matching-Strategie | Gewicht |
+|--------|--------------------|-------------------|--------------------|---------|
+| **Persönlichkeit** | ClaVis CORE | Stimulation (E/I), Sicherheit (J/P), S, A, O, P | Ähnlichkeit — gewichteter Manhattan | 15 % |
+| **Motive** | ClaVis MOTIVES | Bindung, Leistung, Gestaltung | Ähnlichkeit — Gaussian σ=0,20 | 15 % |
+| **Werte** | KSA-3, KSDO-3, Closed Mindset | Autoritarismus (pa1–pa4), Soziale Dominanz (pd1–pd3), Offenheit (cm1–cm3) | Ähnlichkeit — Gaussian σ=0,20 | 15 % |
+| **Wohlbefinden** | PSS-10, RS-13, UCLA | Stress (s1–s5), Resilienz (r1–r5), Einsamkeit (e1–e6) | Ähnlichkeit — Gaussian + Bonus¹ | 10 % |
+| **Erwartungen** | Eigene Items | Sauberkeit, Lärmpegel, Besuchshäufigkeit | Asymmetrischer Fit — min(A→B, B→A) | 20 % |
+| **Lebensstil** | Eigene Items | Gemeinschaft, Teilen, gegenseitige Unterstützung | Ähnlichkeit — lineare Likert-Ähnlichkeit | 10 % |
+| **Tagesrhythmus** | Eigene Items | Tagesrhythmus-Typ (Frühaufsteher / Nachtmensch / …) | Komplementarität — Kompatibilitätsmatrix | 15 % |
+
+¹ Resilienz-Bonus ×1,2 wenn beide ≥ 0,80
+
+---
+
+### Hard Constraints — Ausschlusskriterien
+
+| Kriterium | Typ | Logik |
+|-----------|-----|-------|
+| Budget | Numerisch | Budgetbereiche beider Personen müssen sich überschneiden |
+| Standort | Geo | Haversine-Distanz ≤ eingestellter Radius |
+| Rauchen | Enum | Nichtraucher inkompatibel mit Raucher ohne Toleranz |
+| Haustiere | Liste | Unverträgliche Tierarten werden ausgeschlossen |
+| Einzugsdatum | Datum | Zeitfenster müssen sich überschneiden |
+| Geschlecht | Ausschlussliste | gender_exclude bidirektional geprüft |
+| Alter | Bereichsliste | age_exclude: Liste von (min, max)-Tupeln |
+| Kinder | Boolean | has_children vs. children_exclude |
+
+---
+
+### Risk Layer — Ampelsystem (nicht im Soft Score)
+
+| Signal | Instrument | Items | 🟡 Yellow ab | 🔴 Red ab |
+|--------|-----------|-------|-------------|---------|
+| Aggression | Eigene Items | ga1–ga3 | ≥ 0,60 | ≥ 0,80 |
+| Neurotizismus | Eigene Items | gn1–gn3 | ≥ 0,65 | ≥ 0,85 |
+| Stress? | PSS-10 | s1–s5 | ≥ 0,70 | ≥ 0,90 |
+| Resilienz (niedrig)? | RS-13 | r1–r5 | ≤ 0,30 | ≤ 0,15 |
+| Closed Mindset (extrem) | Eigene Items | cm1–cm3 | ≥ 0,80 (allein) | + weiteres Yellow/Red |
+| Gestaltungsmotiv (extrem) | ClaVis MOTIVES | Gestaltung-gesamt | ≥ 0,90 (allein) | + weiteres Yellow/Red |
 
 ---
 
